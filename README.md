@@ -17,7 +17,7 @@ more clearly which tests failed and which ones didn't.
 Usage
 ---
 
-### In code
+### Call the macro
 
     test(expression)
 
@@ -33,8 +33,7 @@ Or tests that were successful, like so:
 
     $ ./test 2> /dev/null
 
-Example
--------
+### Example
 
     #include <string.h>
     #include "unittest.h"
