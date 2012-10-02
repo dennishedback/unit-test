@@ -40,19 +40,13 @@ Or tests that were successful, like so:
     
     int strlen_testcase(void)
     {
-        char *s = "Dummy data";
+        char s[] = "Dummy data";
         return strlen(s);
 	}
-
-    size_t sizeof_testcase(void)
-    {
-        return sizeof(int);
-    }
 
     int main(void)
     {
         test(strlen_testcase() == 10);
-        test(sizeof_testcase() == 4);
         return 0;
     }
 
