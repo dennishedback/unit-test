@@ -44,7 +44,8 @@
 
 void _log_fail(char const *exp)
 {
-	printf(
+	fprintf(
+		stderr,
 		"%s%sFAILURE!%s%s Test case (%s) failed%s\n",
 		ANSI_BACKCOLOR_RED,
 		ANSI_BOLD_ON,
