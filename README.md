@@ -14,12 +14,10 @@ If your output (for example xterm) is capable of understanding ANSI color
 codes, the output will also be colorized in green or red, allowing you to see
 more clearly which tests failed and which ones didn't.
 
-API
+Usage
 ---
 
-There is one single function-like macro in the API:
-
-test(expression)
+    test(expression)
 
 Example
 -------
