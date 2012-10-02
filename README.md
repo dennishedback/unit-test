@@ -17,7 +17,21 @@ more clearly which tests failed and which ones didn't.
 Usage
 ---
 
+### In code
+
     test(expression)
+
+### Filtering output
+
+As the output will be printed to stderr on failure and stdout on success, it
+is possible to filter the output of your compiled tests. You may choose to
+only see tests that failed, like so:
+
+    $ ./test > /dev/null
+
+Or tests that were successful, like so:
+
+    $ ./test 2> /dev/null
 
 Example
 -------
