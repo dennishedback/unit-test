@@ -38,33 +38,37 @@
 
 #define test(exp) \
 	if (exp) \
-		_log_succ(#exp); \
+		_log_succ(#exp, __FILE__, __LINE__); \
 	else \
-		_log_fail(#exp);
+		_log_fail(#exp, __FILE__, __LINE__);
 
-void _log_fail(char const *exp)
+void _log_fail(char const *exp, char *file, int line)
 {
 	fprintf(
 		stderr,
-		"%s%sFAILURE!%s%s Test case (%s) failed%s\n",
+		"%s%sFAILURE!%s%s Test case (%s) at %s:%i failed%s\n",
 		ANSI_BACKCOLOR_RED,
 		ANSI_BOLD_ON,
 		ANSI_RESET,
 		ANSI_FORECOLOR_RED,
 		exp,
+		file,
+		line,
 		ANSI_RESET
 	);
 }
 
-void _log_succ(char const *exp)
+void _log_succ(char const *exp, char *file, int line)
 {
 	printf(
-		"%s%sSUCCESS!%s%s Test case (%s) was successful%s\n",
+		"%s%sSUCCESS!%s%s Test case (%s) at %s:%i was successful%s\n",
 		ANSI_BACKCOLOR_GREEN,
 		ANSI_BOLD_ON,
 		ANSI_RESET,
 		ANSI_FORECOLOR_GREEN,
 		exp,
+		file,
+		line,
 		ANSI_RESET
 	);
 }
