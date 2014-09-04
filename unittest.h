@@ -126,13 +126,13 @@ static TestCase *head_testcase;
  * Logs a test result
  */
 
-static void _log(char *exp, char *type, char *file, int line, int eval)
+static void _log(char const *exp, char const *type, char const *file, int line, int eval)
 {
     #define RED "\x1b[31m"
     #define GREEN "\x1b[32m"
     #define RESET "\x1b[0m"
 
-    char status[7], color[9], type_str[12];
+    char status[7], color[9];
 
     if (eval) {
         strcpy(status, "passed");
@@ -142,12 +142,6 @@ static void _log(char *exp, char *type, char *file, int line, int eval)
         strcpy(color, RED);
     }
 
-    if (type == TEST_TYPE_ASSERT) {
-        strcpy(type_str, "Assertion");
-    } else {
-        strcpy(type_str, "Expectation");
-    }
-    
     if (!current_testcase->logged) {
         fprintf(stderr, "In testcase '%s':\n", current_testcase->name);
         current_testcase->logged = 1;
@@ -157,7 +151,7 @@ static void _log(char *exp, char *type, char *file, int line, int eval)
          stderr,
          "  %s%s '%s' %s (%s:%i)\n%s",
          color,
-         type_str,
+         type,
          exp,
          status,
          file,
@@ -170,7 +164,7 @@ static void _log(char *exp, char *type, char *file, int line, int eval)
  * Processes a test result
  */
 
-extern int _process_result(int passed, char *exp, TestType type, char *file, int line)
+extern int _process_result(int passed, char const *exp, TestType type, char const *file, int line)
 { 
     char type_str[12];
 
