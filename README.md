@@ -1,5 +1,8 @@
-umit - Useful MInimal Testing-framework
-=======================================
+umit
+====
+
+Useful Minimal Testing-framework
+--------------------------------
 
 umit is a minimal unit testing framework consisting of one C header file which
 can be dropped into projects. It will compile as both ANSI-C and C++98. 
