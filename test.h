@@ -67,7 +67,7 @@ typedef struct UmitTestCase {
     struct UmitTestCase *next;
 } UmitTestCase;
 
-/* Holds all command line _umit_options */
+/* Holds all command line umit_options */
 typedef struct UmitOptions {
     int color;
     int passed;
@@ -93,22 +93,22 @@ static void cleanup_tests(void);
    is the least painful way to do it. */
 
 /* Whether or not an assertion has failed */
-extern int _umit_assert_failed = 0;
+extern int umit_assert_failed = 0;
 
 /* The number of tests that has been run */
-static int _umit_num_run = 0;
+static int umit_num_run = 0;
 
 /* The number of tests that failed */
-static int _umit_num_failed = 0;
+static int umit_num_failed = 0;
 
 /* As the UmitTestCase type is implemented as a linked list, a pointer to its
    current node is needed */
-static UmitTestCase *_umit_current_testcase;
+static UmitTestCase *umit_current_testcase;
 
 /* Also need a pointer to the head of the list */
-static UmitTestCase *_umit_head_testcase;
+static UmitTestCase *umit_head_testcase;
 
-static UmitOptions _umit_options;
+static UmitOptions umit_options;
 
 
 /****************************************************************************
@@ -116,18 +116,18 @@ static UmitOptions _umit_options;
  ****************************************************************************/
 
 /* Evaluates a test, but only if the assert-failed flag is not set */
-#define _EVAL(exp, type) if (!_umit_assert_failed) \
-    _umit_process_result((int)(exp), #exp, type, __FILE__, __LINE__)
+#define _EVAL(exp, type) if (!umit_assert_failed) \
+    umit_process_result((int)(exp), #exp, type, __FILE__, __LINE__)
 
 /* Assertion test. If it fails, no more tests will be evaluated */
-#define ASSERT_EVAL(exp) _EVAL(exp, TEST_TYPE_ASSERT)
+#define UMIT_ASSERT(exp) _EVAL(exp, TEST_TYPE_ASSERT)
 
 /* Expectation test. Tests continue to be evaluated even if an expectation
    fails */
-#define EXPECT_EVAL(exp) _EVAL(exp, TEST_TYPE_EXPECT)
+#define UMIT_EXPECT(exp) _EVAL(exp, TEST_TYPE_EXPECT)
 
 /* Registers testcases */
-#define TC_REG(func) _umit_register_testcase(func, #func)
+#define UMIT_REG(func) umit_register_testcase(func, #func)
 
 
 /****************************************************************************
@@ -138,7 +138,7 @@ static UmitOptions _umit_options;
  * Logs a test result
  */
 
-static void _umit_log(char const *exp, char const *type, char const *file, int line, int passed)
+static void umit_log(char const *exp, char const *type, char const *file, int line, int passed)
 {
     #define RED "\x1b[31m"
     #define GREEN "\x1b[32m"
@@ -146,7 +146,7 @@ static void _umit_log(char const *exp, char const *type, char const *file, int l
 
     char status[7], color[9], indent[3];
 
-    if (!_umit_options.color) {
+    if (!umit_options.color) {
         status[0] = '\0';
     } else if (passed) {
         strcpy(color, GREEN);
@@ -160,12 +160,12 @@ static void _umit_log(char const *exp, char const *type, char const *file, int l
         strcpy(status, "failed");
     }
 
-    if (!_umit_current_testcase->logged && _umit_options.verbose) {
-        fprintf(stderr, "In testcase '%s':\n", _umit_current_testcase->name);
-        _umit_current_testcase->logged = 1;
+    if (!umit_current_testcase->logged && umit_options.verbose) {
+        fprintf(stderr, "In testcase '%s':\n", umit_current_testcase->name);
+        umit_current_testcase->logged = 1;
     }
 
-    if (_umit_options.verbose) {
+    if (umit_options.verbose) {
         strcpy(indent, "  ");
     } else {
         strcpy(indent, "");
@@ -189,7 +189,7 @@ static void _umit_log(char const *exp, char const *type, char const *file, int l
  * Processes a test result
  */
 
-extern int _umit_process_result(int passed, char const *exp, UmitTestType type, char const *file, int line)
+extern int umit_process_result(int passed, char const *exp, UmitTestType type, char const *file, int line)
 { 
     char type_str[12];
 
@@ -198,12 +198,12 @@ extern int _umit_process_result(int passed, char const *exp, UmitTestType type, 
            should be evaluated. The assertion-failed flag is therefore
            set to 1 */
         if (type == TEST_TYPE_ASSERT) {
-            _umit_assert_failed = 1;
+            umit_assert_failed = 1;
         }
-        _umit_num_failed++;
+        umit_num_failed++;
     }
 
-    if ((passed && _umit_options.passed) || !passed) {
+    if ((passed && umit_options.passed) || !passed) {
         switch (type) {
         case TEST_TYPE_ASSERT:
             strcpy(type_str, "Assertion");
@@ -213,10 +213,10 @@ extern int _umit_process_result(int passed, char const *exp, UmitTestType type, 
             break;
         } 
 
-        _umit_log(exp, type_str, file, line, passed);
+        umit_log(exp, type_str, file, line, passed);
     }
     
-    _umit_num_run++; 
+    umit_num_run++; 
 
     return passed;   
 }
@@ -226,7 +226,7 @@ extern int _umit_process_result(int passed, char const *exp, UmitTestType type, 
  * Creates a new testcase node
  */
 
-static UmitTestCase *_umit_create_testcase(void)
+static UmitTestCase *umit_create_testcase(void)
 {
     /* Explicit cast to be able to use this module in C++ projects */
     UmitTestCase *node = (UmitTestCase*)malloc(sizeof(UmitTestCase));
@@ -244,29 +244,29 @@ static UmitTestCase *_umit_create_testcase(void)
  * Registers a testcase
  */
 
-extern void _umit_register_testcase(UmitTestCasePtr func, char const *testcase_name)
+extern void umit_register_testcase(UmitTestCasePtr func, char const *testcase_name)
 {
-    _umit_current_testcase->func = func;
-    strncpy(_umit_current_testcase->name, testcase_name, 31);
-    _umit_current_testcase->next = _umit_create_testcase();
-    _umit_current_testcase = _umit_current_testcase->next;
+    umit_current_testcase->func = func;
+    strncpy(umit_current_testcase->name, testcase_name, 31);
+    umit_current_testcase->next = umit_create_testcase();
+    umit_current_testcase = umit_current_testcase->next;
 }
 
 /*
  * Runs all testcases
  */
 
-static void _umit_run_tests(void)
+static void umit_run_tests(void)
 {
-    _umit_current_testcase = _umit_head_testcase;
-    while (_umit_current_testcase->func != NULL) {
+    umit_current_testcase = umit_head_testcase;
+    while (umit_current_testcase->func != NULL) {
         /* Return prematurely if an assertion failed */
-        if (_umit_assert_failed) {
+        if (umit_assert_failed) {
             return;
         }
         /* Execute the user-defined testcase function */
-        _umit_current_testcase->func();                
-        _umit_current_testcase = _umit_current_testcase->next;
+        umit_current_testcase->func();                
+        umit_current_testcase = umit_current_testcase->next;
     }
 }
 
@@ -274,7 +274,7 @@ static void _umit_run_tests(void)
  * Outputs usage
  */
 
-static void _umit_print_usage(char *executable)
+static void umit_print_usage(char *executable)
 {
     fprintf(stderr, "Usage:  %s [OPTIONS]\n", executable);
 }
@@ -283,7 +283,7 @@ static void _umit_print_usage(char *executable)
  * Outputs version information
  */
 
-static void _umit_print_version(void)
+static void umit_print_version(void)
 {
     fputs("umit ", stderr);
     fputs(UMIT_VERSION, stderr);
@@ -294,9 +294,9 @@ static void _umit_print_version(void)
  * Outputs help message
  */
 
-static void _umit_print_help(char *executable)
+static void umit_print_help(char *executable)
 {
-    _umit_print_usage(executable);
+    umit_print_usage(executable);
     fputs("Useful minimal testing-framework\n\n", stderr);
     fputs("  --no-color     No colored output\n", stderr);
     fputs("  --no-passed    Only output failed tests\n", stderr);
@@ -309,34 +309,34 @@ static void _umit_print_help(char *executable)
  * Parses command line arguments
  */
 
-static void _umit_parse_arguments(int argc, char *argv[])
+static void umit_parse_arguments(int argc, char *argv[])
 {
     int i;
 
-    /* '_umit_options' variable is global to this translation unit and holds shared
+    /* 'umit_options' variable is global to this translation unit and holds shared
        states */
 
-    /* Default _umit_options */
-    _umit_options.color = 1;
-    _umit_options.passed = 1;
-    _umit_options.verbose = 1;
+    /* Default umit_options */
+    umit_options.color = 1;
+    umit_options.passed = 1;
+    umit_options.verbose = 1;
 
-    /* Runtime _umit_options */
+    /* Runtime umit_options */
     for (i = 1; i < argc; i++) {
         if (strcmp("--no-color", argv[i]) == 0) {
-            _umit_options.color = 0;
+            umit_options.color = 0;
         } else if (strcmp("--no-passed", argv[i]) == 0) {
-            _umit_options.passed = 0;
+            umit_options.passed = 0;
         } else if (strcmp("--no-verbose", argv[i]) == 0) {
-            _umit_options.verbose = 0;
+            umit_options.verbose = 0;
         } else if (strcmp("--help", argv[i]) == 0) {
-            _umit_print_help(argv[0]);
+            umit_print_help(argv[0]);
             exit(0);
         } else if (strcmp("--version", argv[i]) == 0) {
-            _umit_print_version();
+            umit_print_version();
             exit(0);
         } else {
-            _umit_print_usage(argv[0]);
+            umit_print_usage(argv[0]);
             exit(-2);
         }
     }
@@ -346,32 +346,32 @@ int main(int argc, char *argv[])
 {
     int num_passed;
     
-    _umit_parse_arguments(argc, argv);
+    umit_parse_arguments(argc, argv);
 
     /* Initialize the linked list of testcases */
-    _umit_head_testcase = _umit_create_testcase();
-    _umit_current_testcase = _umit_head_testcase;
+    umit_head_testcase = umit_create_testcase();
+    umit_current_testcase = umit_head_testcase;
 
     /* This is a user-defined function */
     init_tests();
 
     /* All tests that the user registered in init_tests() are now evaluated */
-    _umit_run_tests();
+    umit_run_tests();
 
-    if (_umit_assert_failed && _umit_options.verbose) {
+    if (umit_assert_failed && umit_options.verbose) {
         fputs("Test aborted due to failed assertion\n", stderr);
     }
  
     /* This is a user-defined function */
     cleanup_tests();
 
-    if (_umit_options.verbose) {
-        num_passed = _umit_num_run - _umit_num_failed;
-        fprintf(stderr, "%i of %i tests passed\n", num_passed, _umit_num_run);
+    if (umit_options.verbose) {
+        num_passed = umit_num_run - umit_num_failed;
+        fprintf(stderr, "%i of %i tests passed\n", num_passed, umit_num_run);
     }
 
     /* Returns the number of failed tests as exit code*/
-    return _umit_num_failed;
+    return umit_num_failed;
 }
 
 #endif /*TEST_H*/
