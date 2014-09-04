@@ -23,7 +23,7 @@ declarations. The user shall define the following functions:
     void cleanup_tests(void);
 
 The user may initialize the testcases and register them with umit within
-`init_tests` using the `UMIT_REG(func)` macro, where `func` is a function
+`init_tests` using the `TC_REG(func)` macro, where `func` is a function
 pointer to a testcase. A testcase takes the following form:
 
     void testcase(void);
@@ -31,11 +31,11 @@ pointer to a testcase. A testcase takes the following form:
 The user may then perform tests inside testcases. There are currently two
 types of tests:
 
-    UMIT_EXPECT(exp)
-    UMIT_ASSERT(exp)
+    EXPECT(exp)
+    ASSERT(exp)
 
 The difference between them is that all further evalutation is aborted if
-`UMIT_ASSERT` fails. This is not the case of a failure within `UMIT_EXPECT`.
+`ASSERT` fails. This is not the case of a failure within `EXPECT`.
 
 ### Command-line options
     
@@ -53,29 +53,29 @@ The following code should contain _all_ aspects of using umit.
     
     void testcase_1(void)
     {
-        UMIT_EXPECT(4 > 10); /* Fails */
-        UMIT_EXPECT(5 == 5); /* Passes */
+        EXPECT(4 > 10); /* Fails */
+        EXPECT(5 == 5); /* Passes */
     }
     
     void testcase_2(void)
     {
-        UMIT_ASSERT(5 == 5); /* Passes, evaluations of tests continue */
-        UMIT_ASSERT(5 != 5); /* Fails, no more evaluations of tests */
-        UMIT_EXPECT(5 != 5); /* Never executed */
+        ASSERT(5 == 5); /* Passes, evaluations of tests continue */
+        ASSERT(5 != 5); /* Fails, no more evaluations of tests */
+        EXPECT(5 != 5); /* Never executed */
     }
     
     /* This function will never execute due to a failed assertion */
     void testcase_3(void)
     {
-        UMIT_EXPECT(4 == 4);
+        EXPECT(4 == 4);
     }
     
     void init_tests(void)
     {
         /* Register the testcases for evaluation */
-        UMIT_REG(testcase_1);
-        UMIT_REG(testcase_2);
-        UMIT_REG(testcase_3);
+        TC_REG(testcase_1);
+        TC_REG(testcase_2);
+        TC_REG(testcase_3);
     }
 
     void cleanup_tests(void)
