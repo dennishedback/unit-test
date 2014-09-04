@@ -1,4 +1,6 @@
 /*
+ * Umit
+ *
  * Copyright (c) 2012, Dennis Hedback 
  * All rights reserved.
  * 
@@ -26,6 +28,7 @@
 
 #ifndef TEST_H
 #define TEST_H
+#define UMIT_VERSION "0.2.0"
 
 /****************************************************************************
  # INCLUDED MODULES
@@ -64,6 +67,13 @@ typedef struct TestCase {
     struct TestCase *next;
 } TestCase;
 
+/* Holds all command line options */
+typedef struct Options {
+    int color;
+    int passed;
+    int verbose;
+} Options;
+
 
 /****************************************************************************
  # FORWARD-DECLARATIONS
@@ -97,6 +107,8 @@ static TestCase *current_testcase;
 
 /* Also need a pointer to the head of the list */
 static TestCase *head_testcase;
+
+static Options options;
 
 
 /****************************************************************************
@@ -132,24 +144,34 @@ static void _log(char const *exp, char const *type, char const *file, int line, 
     #define GREEN "\x1b[32m"
     #define RESET "\x1b[0m"
 
-    char status[7], color[9];
+    char status[7], color[9], indent[3];
 
-    if (eval) {
-        strcpy(status, "passed");
+    if (!options.color) {
+        status[0] = '\0';
+    } else if (eval) {
         strcpy(color, GREEN);
-    } else {
-        strcpy(status, "failed");
+    } else if (!eval) {
         strcpy(color, RED);
     }
 
-    if (!current_testcase->logged) {
+    if (eval) {
+        strcpy(status, "passed");
+    } else {
+        strcpy(status, "failed");
+    }
+
+    if (!current_testcase->logged && options.verbose) {
         fprintf(stderr, "In testcase '%s':\n", current_testcase->name);
         current_testcase->logged = 1;
+        strcpy(indent, "  ");
+    } else {
+        strcpy(indent, "");
     }
 
 	fprintf(
          stderr,
-         "  %s%s '%s' %s (%s:%i)\n%s",
+         "%s%s%s '%s' %s (%s:%i)\n%s",
+         indent,
          color,
          type,
          exp,
@@ -178,16 +200,19 @@ extern int _process_result(int passed, char const *exp, TestType type, char cons
         _num_failed++;
     }
 
-    switch (type) {
-    case TEST_TYPE_ASSERT:
-        strcpy(type_str, "Assertion");
-        break;
-    case TEST_TYPE_EXPECT:
-        strcpy(type_str, "Expectation");
-        break;
-    } 
+    if ((passed && options.passed) || !passed) {
+        switch (type) {
+        case TEST_TYPE_ASSERT:
+            strcpy(type_str, "Assertion");
+            break;
+        case TEST_TYPE_EXPECT:
+            strcpy(type_str, "Expectation");
+            break;
+        } 
 
-    _log(exp, type_str, file, line, passed);
+        _log(exp, type_str, file, line, passed);
+    }
+    
     _num_run++; 
 
     return passed;   
@@ -242,9 +267,84 @@ static void _run_tests(void)
     }
 }
 
+/*
+ * Outputs usage
+ */
+
+void _print_usage(char *executable)
+{
+    fprintf(stderr, "Usage:  %s [OPTIONS]\n", executable);
+}
+
+/*
+ * Outputs version information
+ */
+
+void _print_version(void)
+{
+    fputs("umit ", stderr);
+    fputs(UMIT_VERSION, stderr);
+    fputs("\nCopyright (C) Dennis Hedback 2014\n", stderr);
+}
+
+/*
+ * Outputs help message
+ */
+
+void _print_help(char *executable)
+{
+    _print_usage(executable);
+    fputs("Useful minimal testing-framework\n\n", stderr);
+    fputs("  --no-color     No colored output\n", stderr);
+    fputs("  --no-passed    Only output failed tests\n", stderr);
+    fputs("  --no-verbose   Be less verbose\n", stderr);
+    fputs("  --help         Display this help and exit\n", stderr);
+    fputs("  --version      Output version information and exit\n", stderr);
+}
+
+/*
+ * Parses command line arguments
+ */
+
+void _parse_arguments(int argc, char *argv[])
+{
+    int i;
+
+    /* Options variable is global to this translation unit and holds shared
+       states */
+
+    /* Default options */
+    options.color = 1;
+    options.passed = 1;
+    options.verbose = 1;
+
+    /* Runtime options */
+    for (i = 1; i < argc; i++) {
+        if (strcmp("--no-color", argv[i]) == 0) {
+            options.color = 0;
+        } else if (strcmp("--no-passed", argv[i]) == 0) {
+            options.passed = 0;
+        } else if (strcmp("--no-verbose", argv[i]) == 0) {
+            options.verbose = 0;
+            options.passed = 0;
+        } else if (strcmp("--help", argv[i]) == 0) {
+            _print_help(argv[0]);
+            exit(0);
+        } else if (strcmp("--version", argv[i]) == 0) {
+            _print_version();
+            exit(0);
+        } else {
+            _print_usage(argv[0]);
+            exit(-2);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     int num_passed;
+    
+    _parse_arguments(argc, argv);
 
     /* Initialize the linked list of testcases */
     head_testcase = _tc_new();
@@ -256,15 +356,17 @@ int main(int argc, char *argv[])
     /* All tests that the user registered in init_tests() are now evaluated */
     _run_tests();
 
-    if (_assert_failed) {
+    if (_assert_failed && options.verbose) {
         fputs("Test aborted due to failed assertion\n", stderr);
     }
  
     /* This is a user-defined function */
     cleanup_tests();
 
-    num_passed = _num_run - _num_failed;
-    fprintf(stderr, "%i of %i tests passed\n", num_passed, _num_run);
+    if (options.verbose) {
+        num_passed = _num_run - _num_failed;
+        fprintf(stderr, "%i of %i tests passed\n", num_passed, _num_run);
+    }
 
     /* Returns the number of failed tests as exit code*/
     return _num_failed;
