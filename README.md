@@ -1,10 +1,7 @@
-umit
-====
-
-Useful Minimal Testing-framework
+Minimal Unit Testing Framework
 --------------------------------
 
-umit is a minimal unit testing framework consisting of one C header file which
+This is a minimal unit testing framework consisting of one C header file which
 can be dropped into projects. It will compile as both ANSI-C and C++98. 
 
 If your output (for example xterm) is capable of understanding ANSI color
@@ -22,7 +19,7 @@ declarations. The user shall define the following functions:
     void init_tests(void);
     void cleanup_tests(void);
 
-The user may initialize the testcases and register them with umit within
+The user may initialize the testcases and register them within
 `init_tests` using the `TC_REG(func)` macro, where `func` is a function
 pointer to a testcase. A testcase takes the following form:
 
@@ -47,7 +44,7 @@ The difference between them is that all further evalutation is aborted if
 
 ### Example
 
-The following code should contain _all_ aspects of using umit.
+The following code should contain _all_ aspects of using test.h:
 
     #include "test.h"
     
