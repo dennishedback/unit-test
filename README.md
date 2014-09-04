@@ -1,59 +1,89 @@
-Readme
-======
+umit - Useful MInimal Testing-framework
+=======================================
 
-What is this?
--------------
-
-This is a minimal unit testing framework consisting of one C header file. The
-header file contains an assert-like macro and two output functions. Unlike
-the standard library assert macro, this macro will print to stdout in cases
-of both success and failure. It will also not terminate your program,
-allowing you to see all test results at once.
+umit is a minimal unit testing framework consisting of one C header file which
+can be dropped into projects. It will compile as both ANSI-C and C++98. 
 
 If your output (for example xterm) is capable of understanding ANSI color
 codes, the output will also be colorized in green or red, allowing you to see
 more clearly which tests failed and which ones didn't.
 
 Usage
----
+-----
 
-### Call the macro
+### Interface
 
-    test(expression)
+The public interface consists of three preprocessor macros and two function
+declarations. The user shall define the following functions:
 
-### Filtering output
+    void init_tests(void);
+    void cleanup_tests(void);
 
-As the output will be printed to stderr on failure and stdout on success, it
-is possible to filter the output of your compiled tests. You may choose to
-only see tests that failed, like so:
+The user may initialize the testcases and register them with umit within
+`init_tests` using the `UMIT_REG(func)` macro, where `func` is a function
+pointer to a testcase. A testcase takes the following form:
 
-    $ ./test > /dev/null
+    void testcase(void);
 
-Or tests that were successful, like so:
+The user may then perform tests inside testcases. There are currently two
+types of tests:
 
-    $ ./test 2> /dev/null
+    UMIT_EXPECT(exp)
+    UMIT_ASSERT(exp)
+
+The difference between them is that all further evalutation is aborted if
+`UMIT_ASSERT` fails. This is not the case of a failure within `UMIT_EXPECT`.
+
+### Command-line options
+    
+    --no-color     No colored output
+    --no-passed    Only output failed tests
+    --no-verbose   Be less verbose
+    --help         Display this help and exit
+    --version      Output version information and exit
 
 ### Example
 
-    #include <string.h>
-    #include "unittest.h"
-    
-    int strlen_testcase(void)
-    {
-        char s[] = "Dummy data";
-        return strlen(s);
-	}
+The following code should contain _all_ aspects of using umit.
 
-    int main(void)
+    #include "test.h"
+    
+    void testcase_1(void)
     {
-        test(strlen_testcase() == 10);
-        return 0;
+        UMIT_EXPECT(4 > 10); /* Fails */
+        UMIT_EXPECT(5 == 5); /* Passes */
+    }
+    
+    void testcase_2(void)
+    {
+        UMIT_ASSERT(5 == 5); /* Passes, evaluations of tests continue */
+        UMIT_ASSERT(5 != 5); /* Fails, no more evaluations of tests */
+        UMIT_EXPECT(5 != 5); /* Never executed */
+    }
+    
+    /* This function will never execute due to a failed assertion */
+    void testcase_3(void)
+    {
+        UMIT_EXPECT(4 == 4);
+    }
+    
+    void init_tests(void)
+    {
+        /* Register the testcases for evaluation */
+        UMIT_REG(testcase_1);
+        UMIT_REG(testcase_2);
+        UMIT_REG(testcase_3);
+    }
+
+    void cleanup_tests(void)
+    {
+        /* Use tis one to free memory etc */
     }
 
 Copying
 -------
 
-Copyright (c) 2012, Dennis Hedback 
+Copyright (c) 2014, Dennis Hedback 
 All rights reserved.
  
 Redistribution and use in source and binary forms, with or without
