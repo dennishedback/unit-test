@@ -1,5 +1,5 @@
 /*
- * Umit
+ * 
  *
  * Copyright (c) 2012, Dennis Hedback 
  * All rights reserved.
@@ -50,29 +50,29 @@
 typedef enum {
     TEST_TYPE_ASSERT,
     TEST_TYPE_EXPECT
-} UmitTestType;
+} TestType;
 
 /* Testcase function pointer type  */
-typedef void (*UmitTestCasePtr)();
+typedef void (*TestCasePtr)();
 
 /* Testcase implemented as singly-linked list */
-typedef struct UmitTestCase {
+typedef struct TestCase {
     /* Pointer to the user defined function containing the testcase*/
-    UmitTestCasePtr func;
+    TestCasePtr func;
     /* Name of testcase (i.e. the name of the function) */
     char name[32];
     /* Whether or not the name of the testcase has already been written to
        the log */
     int logged;
-    struct UmitTestCase *next;
-} UmitTestCase;
+    struct TestCase *next;
+} TestCase;
 
 /* Holds all command line ut_options */
-typedef struct UmitOptions {
+typedef struct Options {
     int color;
     int passed;
     int verbose;
-} UmitOptions;
+} Options;
 
 
 /****************************************************************************
@@ -101,14 +101,14 @@ static int ut_num_run = 0;
 /* The number of tests that failed */
 static int ut_num_failed = 0;
 
-/* As the UmitTestCase type is implemented as a linked list, a pointer to its
+/* As the TestCase type is implemented as a linked list, a pointer to its
    current node is needed */
-static UmitTestCase *ut_current_testcase;
+static TestCase *ut_current_testcase;
 
 /* Also need a pointer to the head of the list */
-static UmitTestCase *ut_head_testcase;
+static TestCase *ut_head_testcase;
 
-static UmitOptions ut_options;
+static Options ut_options;
 
 
 /****************************************************************************
@@ -189,7 +189,7 @@ static void ut_log(char const *exp, char const *type, char const *file, int line
  * Processes a test result
  */
 
-extern int ut_process_result(int passed, char const *exp, UmitTestType type, char const *file, int line)
+extern int ut_process_result(int passed, char const *exp, TestType type, char const *file, int line)
 { 
     char type_str[12];
 
@@ -226,10 +226,10 @@ extern int ut_process_result(int passed, char const *exp, UmitTestType type, cha
  * Creates a new testcase node
  */
 
-static UmitTestCase *ut_create_testcase(void)
+static TestCase *ut_create_testcase(void)
 {
     /* Explicit cast to be able to use this module in C++ projects */
-    UmitTestCase *node = (UmitTestCase*)malloc(sizeof(UmitTestCase));
+    TestCase *node = (TestCase*)malloc(sizeof(TestCase));
     if (node == NULL) {
         fputs("Could not allocate memory", stderr);
         exit(-1);
@@ -244,7 +244,7 @@ static UmitTestCase *ut_create_testcase(void)
  * Registers a testcase
  */
 
-extern void ut_register_testcase(UmitTestCasePtr func, char const *testcase_name)
+extern void ut_register_testcase(TestCasePtr func, char const *testcase_name)
 {
     ut_current_testcase->func = func;
     strncpy(ut_current_testcase->name, testcase_name, 31);
